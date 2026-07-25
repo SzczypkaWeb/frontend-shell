@@ -9,7 +9,7 @@
     "build": "webpack --config webpack.config.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Kertoip",
   "license": "ISC",
   "packageManager": "pnpm@10.34.4",
   "dependencies": {
