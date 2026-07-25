@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "webpack serve --config webpack.config.ts",
-    "build": "webpack --config webpack.config.ts"
+    "build": "webpack --config webpack.config.ts",
+    "lint": "eslint src webpack.config.ts",
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "Kertoip",
@@ -19,14 +21,21 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
     "html-webpack-plugin": "^5.6.8",
+    "prettier": "^3.9.6",
     "ts-loader": "^9.6.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.1",
     "typescript": "5.9.3",
+    "typescript-eslint": "^8.65.0",
     "webpack": "^5.109.0",
     "webpack-cli": "^7.2.1",
     "webpack-dev-server": "^6.0.0"
