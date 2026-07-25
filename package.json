@@ -8,7 +8,8 @@
     "dev": "webpack serve --config webpack.config.ts",
     "build": "webpack --config webpack.config.ts",
     "lint": "eslint src webpack.config.ts",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "lefthook install || true"
   },
   "keywords": [],
   "author": "Kertoip",
@@ -30,6 +31,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "html-webpack-plugin": "^5.6.8",
+    "lefthook": "^2.1.10",
     "prettier": "^3.9.6",
     "ts-loader": "^9.6.2",
     "ts-node": "^10.9.2",
