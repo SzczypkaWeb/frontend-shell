@@ -3,11 +3,7 @@ import { useUIStore } from './store/uiStore';
 
 export default function App() {
   const { data, isLoading, error } = useUsers();
-  const {
-    theme,
-
-    toggleTheme,
-  } = useUIStore();
+  const { theme, toggleTheme } = useUIStore();
 
   if (isLoading) return <p>Ładowanie...</p>;
   if (error) return <p>Błąd: {(error as Error).message}</p>;
