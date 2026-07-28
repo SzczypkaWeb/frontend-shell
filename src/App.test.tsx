@@ -3,6 +3,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 
+// Stub the Module Federation remote loader so App-level tests don't depend on a real
+// 'reactApp' remote (remoteEntry.js) being reachable.
+vi.mock('./remotes/reactAppWidget', () => ({
+  loadReactAppWidget: vi.fn().mockResolvedValue({
+    default: () => <div data-testid="remote-widget-stub">Remote widget stub</div>,
+  }),
+}));
+
 function renderApp() {
   // Disable retries so failed requests reject immediately in tests.
   const queryClient = new QueryClient({
@@ -124,5 +132,34 @@ describe('App - version display', () => {
     // Verify version calls that failed weren't displayed - the component should return null
     // So we shouldn't see any version text
     expect(screen.queryByText(/^v/)).not.toBeInTheDocument();
+  });
+});
+
+describe('App - remote widget (Module Federation host)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [],
+      }),
+    );
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('renders the remote Widget exposed by the reactApp remote, lazily, on the main page', async () => {
+    renderApp();
+
+    // The remote is loaded asynchronously (React.lazy + Suspense), so it isn't present
+    // synchronously on first render.
+    expect(screen.queryByTestId('remote-widget-stub')).not.toBeInTheDocument();
+
+    expect(await screen.findByTestId('remote-widget-stub')).toBeInTheDocument();
   });
 });
