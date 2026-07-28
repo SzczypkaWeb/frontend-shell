@@ -1,5 +1,6 @@
 import { useUsers } from './hooks/useUsers';
 import { useUIStore } from './store/uiStore';
+import { AppVersionDisplay } from './components/AppVersionDisplay';
 
 export default function App() {
   const { data, isLoading, error } = useUsers();
@@ -16,6 +17,9 @@ export default function App() {
           <li key={u.id}>{u.email}</li>
         ))}
       </ul>
+      <footer style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginTop: '2rem' }}>
+        <AppVersionDisplay />
+      </footer>
     </div>
   );
 }
