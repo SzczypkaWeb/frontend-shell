@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { loadReactAppWidget } from '../remotes/reactAppWidget';
+import { ErrorBoundary } from './ErrorBoundary';
 
 // Lazily load the remote's exposed component so the shell's initial bundle never pays
 // for react-app's code, and so a slow/unavailable remote can't block the host from
@@ -9,8 +10,10 @@ const Widget = lazy(loadReactAppWidget);
 
 export function RemoteWidget() {
   return (
-    <Suspense fallback={<p>Ładowanie widgetu...</p>}>
-      <Widget />
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={<p>Ładowanie widgetu...</p>}>
+        <Widget />
+      </Suspense>
+    </ErrorBoundary>
   );
 }

@@ -69,4 +69,23 @@ describe('RemoteWidget', () => {
     await screen.findByText('Remote widget content');
     expect(loadReactAppWidget).toHaveBeenCalledTimes(1);
   });
+
+  it('shows a friendly error message if the remote module fails to load', async () => {
+    const { loadReactAppWidget } = await import('../remotes/reactAppWidget');
+    const { RemoteWidget } = await import('./RemoteWidget');
+
+    const loadError = new Error('Failed to load remote module at localhost:8081');
+    (loadReactAppWidget as ReturnType<typeof vi.fn>).mockRejectedValue(loadError);
+
+    // Suppress React error boundary warnings in console during this test
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(<RemoteWidget />);
+
+    // The error boundary should catch the error and display a friendly fallback
+    const errorMessage = await screen.findByText(/nie można załadować widgetu/i);
+    expect(errorMessage).toBeInTheDocument();
+
+    consoleErrorSpy.mockRestore();
+  });
 });
