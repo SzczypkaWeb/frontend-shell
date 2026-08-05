@@ -17,10 +17,10 @@ interface User {
 // Resolving to an empty list (rather than throwing) keeps `error` unset;
 // authStore.logout() clearing the user then drives AppShell back to
 // LoginScreen on its own.
-async function fetchUsers(onUnauthorized: () => void): Promise<User[]> {
+async function fetchUsers(onUnauthorized: () => Promise<void>): Promise<User[]> {
   const res = await apiFetch('/users');
   if (res.status === 401) {
-    onUnauthorized();
+    await onUnauthorized();
     return [];
   }
   if (!res.ok) throw new Error('Failed to fetch users');

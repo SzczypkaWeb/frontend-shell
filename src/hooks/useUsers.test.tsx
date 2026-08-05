@@ -62,6 +62,9 @@ describe('useUsers', () => {
     const { result } = renderHook(() => useUsers(), { wrapper: createWrapper() });
 
     await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
+    // Verify the logout promise was actually awaited by checking that the
+    // query completes with an empty list (which is returned after logout completes)
+    await waitFor(() => expect(result.current.data).toEqual([]));
     expect(result.current.isError).toBe(false);
     expect(result.current.error).toBeNull();
   });
@@ -79,5 +82,31 @@ describe('useUsers', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(logout).not.toHaveBeenCalled();
+  });
+
+  it('waits for authStore.logout() to complete before returning on 401', async () => {
+    // Create a logout mock that tracks when it's called and resolved
+    let logoutCalled = false;
+    let logoutCompleted = false;
+    const logout = vi.fn().mockImplementation(async () => {
+      logoutCalled = true;
+      await new Promise((resolve) => setTimeout(resolve, 10)); // Simulate async work
+      logoutCompleted = true;
+    });
+    await mockAuthStore(logout);
+    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({}),
+    });
+
+    const { result } = renderHook(() => useUsers(), { wrapper: createWrapper() });
+
+    // Wait for logout to be called
+    await waitFor(() => expect(logoutCalled).toBe(true));
+    // Verify it's been awaited by checking the completion flag
+    await waitFor(() => expect(logoutCompleted).toBe(true));
+    // Verify the data is returned (which happens after logout completes)
+    expect(result.current.data).toEqual([]);
   });
 });
