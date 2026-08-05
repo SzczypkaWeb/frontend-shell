@@ -166,4 +166,16 @@ describe('LoginScreen', () => {
     // The URL should start with the API base URL (which defaults to localhost:3000 in tests)
     expect(href).toMatch(/^http:\/\/localhost:3000\/auth\/google$/);
   });
+
+  it('navigates to Google OAuth endpoint when clicking the Google sign-in button', async () => {
+    await setupLoginScreen();
+
+    const googleButton = screen.getByRole('button', {
+      name: /sign in with google|zaloguj przez google/i,
+    });
+
+    await userEvent.click(googleButton);
+
+    expect(assignMock).toHaveBeenCalledWith('http://localhost:3000/auth/google');
+  });
 });
