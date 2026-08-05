@@ -32,15 +32,28 @@ const config: FullConfiguration = {
     new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'public/index.html') }),
     new webpack.DefinePlugin({
       'process.env.API_URL': JSON.stringify(process.env.API_URL ?? 'http://localhost:3000'),
+      // Explicit (rather than relying on webpack's `mode`-derived default) so
+      // the auth mocks (see src/mocks) are reliably excluded from production
+      // builds regardless of the `mode` setting below.
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV ?? 'development'),
     }),
     // Module Federation HOST config: consumes the 'reactApp' remote (react-app),
     // whose remoteEntry.js is served at http://localhost:8081 in dev. The remote is
     // resolved lazily at runtime (React.lazy + Suspense, see src/components/RemoteWidget.tsx)
     // rather than eagerly on host startup.
+    //
+    // The shell is also a container itself here (filename + exposes): it exposes
+    // authStore so that react-app (or any other remote) can later add `shell` to its
+    // own `remotes` config and `import { useAuthStore } from 'shell/authStore'` to read
+    // the exact same auth state, instead of each app tracking login state separately.
     new ModuleFederationPlugin({
       name: 'shell',
+      filename: 'remoteEntry.js',
       remotes: {
         reactApp: 'reactApp@http://localhost:8081/remoteEntry.js',
+      },
+      exposes: {
+        './authStore': './src/store/authStore.ts',
       },
       shared: {
         // Singleton must match react-app's shared config exactly — otherwise the host
@@ -54,12 +67,24 @@ const config: FullConfiguration = {
           singleton: true,
           requiredVersion: packageJson.dependencies['react-dom'],
         },
+        // Singleton so the exposed authStore (a Zustand store, i.e. module-level
+        // state) resolves to one instance across the federation boundary - two
+        // copies of zustand would mean two independent stores instead of one
+        // shared source of truth for the logged-in user.
+        zustand: {
+          singleton: true,
+          requiredVersion: packageJson.dependencies.zustand,
+        },
       },
     }),
   ],
   devServer: {
     port: 8080,
     open: true,
+    // Allows navigating directly to /login (see src/AppShell.tsx, which has no
+    // router yet and switches on window.location.pathname) instead of 404ing -
+    // any unmatched path falls back to index.html, same as with a client-side router.
+    historyApiFallback: true,
   },
 };
 
