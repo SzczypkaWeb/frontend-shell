@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { TextField, PasswordField, FormError, Button } from '@szczypkaweb/shared-ui';
 import { useAuthStore } from '../store/authStore';
 import { loginSchema, type LoginFormValues } from '../schemas/loginSchema';
+import { API_BASE_URL } from '../api/config';
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Login failed.';
@@ -27,6 +28,10 @@ export function LoginScreen() {
       window.location.assign('/');
     },
   });
+
+  const handleGoogleSignIn = () => {
+    window.location.assign(`${API_BASE_URL}/auth/google`);
+  };
 
   return (
     <div className="mx-auto mt-12 max-w-xs">
@@ -71,6 +76,17 @@ export function LoginScreen() {
           Log in
         </Button>
       </form>
+      <div className="mt-6 border-t border-gray-200 pt-6">
+        <p className="mb-3 text-center text-sm text-gray-600">Or sign in with</p>
+        <Button
+          onClick={handleGoogleSignIn}
+          variant="secondary"
+          className="w-full"
+          data-href={`${API_BASE_URL}/auth/google`}
+        >
+          Sign in with Google
+        </Button>
+      </div>
     </div>
   );
 }

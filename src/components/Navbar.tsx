@@ -1,3 +1,4 @@
+import { Button } from '@szczypkaweb/shared-ui';
 import { useAuthStore } from '../store/authStore';
 
 // Selecting narrow slices (rather than the whole store) keeps Navbar from
@@ -11,20 +12,19 @@ export function Navbar() {
       {user ? (
         <>
           <span className="text-sm text-gray-700">{user.email}</span>
-          <button
-            onClick={() => logout()}
-            className="inline-flex items-center justify-center gap-2 rounded-md bg-gray-200 px-3 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-          >
+          <Button onClick={() => logout()} variant="secondary">
             Logout
-          </button>
+          </Button>
         </>
       ) : (
-        <a
-          href="/login"
-          className="inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
+        <Button
+          onClick={() => {
+            window.location.assign('/login');
+          }}
+          variant="ghost"
         >
           Login
-        </a>
+        </Button>
       )}
     </nav>
   );
