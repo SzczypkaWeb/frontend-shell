@@ -19,6 +19,7 @@ const config: FullConfiguration = {
     filename: 'bundle.js',
     // Required by Module Federation so the shell (and any consumer of it) resolves
     // chunk/asset URLs correctly regardless of where it's hosted.
+    chunkFilename: '[name].[contenthash].js',
     publicPath: 'auto',
     clean: true,
   },
@@ -27,7 +28,42 @@ const config: FullConfiguration = {
   },
   module: {
     rules: [
-      { test: /\.tsx?$/, use: 'ts-loader', exclude: /node_modules/ },
+      {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'ts-loader',
+          options: {
+            // tsconfig.json's top-level `module` is CommonJS (required so
+            // ts-node/webpack-cli can load *this* config file, which uses
+            // CommonJS globals like __dirname). CommonJS output, however,
+            // downlevels `import()` into a synchronous `require()` call
+            // wrapped in an already-resolved Promise - which happens BEFORE
+            // webpack's parser ever sees the code. Webpack's code-splitting
+            // only recognizes the literal `import()` syntax, so a downleveled
+            // dynamic import silently stops being split into its own chunk.
+            //
+            // That matters here because src/index.tsx uses `import('./bootstrap')`
+            // specifically to create an async boundary: Module Federation needs
+            // that boundary to initialize its shared scope (react/react-dom/
+            // zustand) before any app code that consumes those shared singletons
+            // runs. Without a real async chunk, react/react-dom/bootstrap/App all
+            // get bundled into the synchronous main entry chunk together with
+            // the `consume-shared` runtime module, which throws "Shared module
+            // is not available for eager consumption" at runtime and leaves the
+            // page blank.
+            //
+            // Overriding `module`/`moduleResolution` here (only for the app
+            // source ts-loader compiles into the bundle, not for the config
+            // file itself) keeps native ESM `import()` syntax intact so webpack
+            // can actually split it off into an async chunk.
+            compilerOptions: {
+              module: 'ES2022',
+              moduleResolution: 'Bundler',
+            },
+          },
+        },
+      },
       {
         test: /\.css$/i,
         // Order matters - webpack applies loaders right-to-left, so a class
@@ -92,6 +128,9 @@ const config: FullConfiguration = {
   devServer: {
     port: 8080,
     open: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
     // Allows navigating directly to /login (see src/AppShell.tsx, which has no
     // router yet and switches on window.location.pathname) instead of 404ing -
     // any unmatched path falls back to index.html, same as with a client-side router.
