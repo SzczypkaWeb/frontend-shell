@@ -1,5 +1,6 @@
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // LoginScreen only talks to the backend through authStore.login(), so we mock
@@ -10,6 +11,14 @@ vi.mock('../store/authStore', () => ({
   useAuthStore: vi.fn(),
 }));
 
+function renderWithQueryClient(component: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+
+  return render(<QueryClientProvider client={queryClient}>{component}</QueryClientProvider>);
+}
+
 async function setupLoginScreen(
   login: ReturnType<typeof vi.fn> = vi.fn().mockResolvedValue(undefined),
 ) {
@@ -19,7 +28,7 @@ async function setupLoginScreen(
     (selector: (s: typeof state) => unknown) => selector(state),
   );
   const { LoginScreen } = await import('./LoginScreen');
-  return { ...render(<LoginScreen />), login };
+  return { ...renderWithQueryClient(<LoginScreen />), login };
 }
 
 describe('LoginScreen', () => {
@@ -94,5 +103,24 @@ describe('LoginScreen', () => {
 
     expect(await screen.findByText(/invalid email or password/i)).toBeInTheDocument();
     expect(assignMock).not.toHaveBeenCalled();
+  });
+
+  it('disables the submit button and shows a loading state while the mutation is pending', async () => {
+    let resolveLogin!: () => void;
+    const login = vi.fn().mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveLogin = resolve;
+      }),
+    );
+    await setupLoginScreen(login);
+
+    await userEvent.type(screen.getByLabelText(/email/i), 'jane@example.com');
+    await userEvent.type(screen.getByLabelText(/password/i), 'secret123');
+    await userEvent.click(screen.getByRole('button', { name: /log in/i }));
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /log in/i })).toBeDisabled());
+
+    resolveLogin();
+    await waitFor(() => expect(screen.getByRole('button', { name: /log in/i })).not.toBeDisabled());
   });
 });

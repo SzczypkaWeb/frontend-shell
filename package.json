@@ -17,10 +17,13 @@
   "license": "ISC",
   "packageManager": "pnpm@10.34.4",
   "dependencies": {
+    "@hookform/resolvers": "^5.7.1",
     "@szczypkaweb/shared-ui": "file:../shared-ui",
     "@tanstack/react-query": "^5.101.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-hook-form": "^7.84.0",
+    "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
