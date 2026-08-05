@@ -26,7 +26,18 @@ const config: FullConfiguration = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   module: {
-    rules: [{ test: /\.tsx?$/, use: 'ts-loader', exclude: /node_modules/ }],
+    rules: [
+      { test: /\.tsx?$/, use: 'ts-loader', exclude: /node_modules/ },
+      {
+        test: /\.css$/i,
+        // Order matters - webpack applies loaders right-to-left, so a class
+        // like `flex` first goes through postcss-loader (Tailwind expands
+        // it to real declarations, autoprefixer adds vendor prefixes), then
+        // css-loader (resolves @import/url()), then style-loader (injects
+        // the resulting CSS into the page via a <style> tag).
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
+      },
+    ],
   },
   plugins: [
     new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'public/index.html') }),
