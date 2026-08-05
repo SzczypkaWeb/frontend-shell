@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { TextField, PasswordField, FormError, SubmitButton } from '@szczypkaweb/shared-ui';
+import { TextField, PasswordField, FormError, Button } from '@szczypkaweb/shared-ui';
 import { useAuthStore } from '../store/authStore';
 import { loginSchema, type LoginFormValues } from '../schemas/loginSchema';
 
@@ -62,7 +62,14 @@ export function LoginScreen() {
         <FormError
           message={loginMutation.isError ? getErrorMessage(loginMutation.error) : undefined}
         />
-        <SubmitButton isLoading={loginMutation.isPending}>Log in</SubmitButton>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={loginMutation.isPending}
+          aria-busy={loginMutation.isPending || undefined}
+        >
+          Log in
+        </Button>
       </form>
     </div>
   );

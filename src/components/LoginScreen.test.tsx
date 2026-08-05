@@ -53,6 +53,21 @@ describe('LoginScreen', () => {
     expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument();
   });
 
+  it('submits via the shared-ui Button component styled as the primary variant', async () => {
+    await setupLoginScreen();
+
+    const button = screen.getByRole('button', { name: /log in/i });
+
+    // The shared-ui Button component renders its Tailwind classes as literal
+    // strings (see @szczypkaweb/shared-ui's Button.tsx) so its content scanner
+    // can pick them up. Asserting on them here pins the login button to that
+    // component's primary variant instead of any bespoke/local styling.
+    expect(button.className).toEqual(expect.stringContaining('bg-blue-600'));
+    expect(button.className).toEqual(expect.stringContaining('text-white'));
+    expect(button.className).toEqual(expect.stringContaining('hover:bg-blue-700'));
+    expect(button).toHaveAttribute('type', 'submit');
+  });
+
   it('shows validation errors and does not call login when fields are empty', async () => {
     const { login } = await setupLoginScreen();
 
