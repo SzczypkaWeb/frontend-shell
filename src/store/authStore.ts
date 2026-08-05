@@ -5,6 +5,13 @@ import type { User } from '../types/user';
 interface AuthState {
   user: User | null;
   isLoading: boolean;
+  /**
+   * Whether the initial checkAuth() call (run once on app mount) has
+   * resolved yet. Distinct from `isLoading` (which is shared with
+   * login/logout) so consumers like AppShell can tell "still checking" apart
+   * from "confirmed logged out" and avoid a flash of the wrong screen.
+   */
+  isAuthChecked: boolean;
   /** Logs in with email/password and stores the returned user on success. */
   login: (email: string, password: string) => Promise<void>;
   /** Clears the session (backend cookies + local user). */
@@ -19,6 +26,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: false,
+  isAuthChecked: false,
 
   login: async (email, password) => {
     set({ isLoading: true });
@@ -49,10 +57,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       const user = await fetchCurrentUser();
-      set({ user, isLoading: false });
+      set({ user, isLoading: false, isAuthChecked: true });
     } catch {
       // 401 / not authenticated - not an error state, just "no session".
-      set({ user: null, isLoading: false });
+      set({ user: null, isLoading: false, isAuthChecked: true });
     }
   },
 }));
