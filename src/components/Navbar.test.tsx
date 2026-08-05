@@ -34,8 +34,18 @@ describe('Navbar', () => {
   it('shows a Login link when no user is authenticated', async () => {
     await setupNavbar({ user: null, logout: vi.fn() });
 
-    expect(screen.getByRole('link', { name: /login/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /logout/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the Login link as a shared-ui Button component', async () => {
+    await setupNavbar({ user: null, logout: vi.fn() });
+
+    const loginButton = screen.getByRole('button', { name: /login/i });
+    // Verify it's the shared-ui Button component by checking for its Tailwind classes
+    expect(loginButton.className).toEqual(expect.stringContaining('inline-flex'));
+    expect(loginButton.className).toEqual(expect.stringContaining('items-center'));
+    expect(loginButton.className).toEqual(expect.stringContaining('justify-center'));
   });
 
   it("shows the user's email and a Logout button when authenticated", async () => {
@@ -43,7 +53,17 @@ describe('Navbar', () => {
 
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /login/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /login/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the Logout button as a shared-ui Button component', async () => {
+    await setupNavbar({ user: mockUser, logout: vi.fn() });
+
+    const logoutButton = screen.getByRole('button', { name: /logout/i });
+    // Verify it's the shared-ui Button component by checking for its Tailwind classes
+    expect(logoutButton.className).toEqual(expect.stringContaining('inline-flex'));
+    expect(logoutButton.className).toEqual(expect.stringContaining('items-center'));
+    expect(logoutButton.className).toEqual(expect.stringContaining('justify-center'));
   });
 
   it('calls authStore.logout() when the Logout button is clicked', async () => {

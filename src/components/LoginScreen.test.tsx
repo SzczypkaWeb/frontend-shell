@@ -138,4 +138,44 @@ describe('LoginScreen', () => {
     resolveLogin();
     await waitFor(() => expect(screen.getByRole('button', { name: /log in/i })).not.toBeDisabled());
   });
+
+  it('renders a Google sign-in button that navigates to the backend Google OAuth endpoint', async () => {
+    await setupLoginScreen();
+
+    const googleButton = screen.getByRole('button', {
+      name: /sign in with google|zaloguj przez google/i,
+    });
+    expect(googleButton).toBeInTheDocument();
+
+    // The button should have an href attribute pointing to the backend's /auth/google endpoint
+    // or be an anchor tag with the proper href
+    const href = googleButton.getAttribute('data-href') || googleButton.getAttribute('href');
+    expect(href).toBe('http://localhost:3000/auth/google');
+  });
+
+  it('uses the API_URL environment variable for the Google OAuth button link', async () => {
+    // This test ensures the Google OAuth URL is constructed from the configured API base URL
+    // rather than hardcoded, so it works in different environments.
+    await setupLoginScreen();
+
+    const googleButton = screen.getByRole('button', {
+      name: /sign in with google|zaloguj przez google/i,
+    });
+    const href = googleButton.getAttribute('data-href') || googleButton.getAttribute('href');
+
+    // The URL should start with the API base URL (which defaults to localhost:3000 in tests)
+    expect(href).toMatch(/^http:\/\/localhost:3000\/auth\/google$/);
+  });
+
+  it('navigates to Google OAuth endpoint when clicking the Google sign-in button', async () => {
+    await setupLoginScreen();
+
+    const googleButton = screen.getByRole('button', {
+      name: /sign in with google|zaloguj przez google/i,
+    });
+
+    await userEvent.click(googleButton);
+
+    expect(assignMock).toHaveBeenCalledWith('http://localhost:3000/auth/google');
+  });
 });
