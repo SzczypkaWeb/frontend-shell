@@ -21,11 +21,12 @@ describe('authStore', () => {
     vi.resetModules();
   });
 
-  it('starts with no user and isLoading false', async () => {
+  it('starts with no user, isLoading false, and isAuthChecked false (initial checkAuth not run yet)', async () => {
     const { useAuthStore } = await import('./authStore');
 
     expect(useAuthStore.getState().user).toBeNull();
     expect(useAuthStore.getState().isLoading).toBe(false);
+    expect(useAuthStore.getState().isAuthChecked).toBe(false);
   });
 
   describe('login', () => {
@@ -92,9 +93,10 @@ describe('authStore', () => {
       expect(fetchCurrentUser).toHaveBeenCalled();
       expect(useAuthStore.getState().user).toEqual(mockUser);
       expect(useAuthStore.getState().isLoading).toBe(false);
+      expect(useAuthStore.getState().isAuthChecked).toBe(true);
     });
 
-    it('sets isLoading true while the check is in flight', async () => {
+    it('sets isLoading true while the check is in flight, and isAuthChecked still false', async () => {
       const { fetchCurrentUser } = await import('../api/auth');
       const { useAuthStore } = await import('./authStore');
       let resolveFetch!: (user: User) => void;
@@ -104,6 +106,7 @@ describe('authStore', () => {
 
       const pending = useAuthStore.getState().checkAuth();
       expect(useAuthStore.getState().isLoading).toBe(true);
+      expect(useAuthStore.getState().isAuthChecked).toBe(false);
 
       resolveFetch(mockUser);
       await pending;
@@ -123,6 +126,18 @@ describe('authStore', () => {
 
       expect(useAuthStore.getState().user).toBeNull();
       expect(useAuthStore.getState().isLoading).toBe(false);
+    });
+
+    it('sets isAuthChecked true after resolving, even when there is no session (rejection)', async () => {
+      const { fetchCurrentUser } = await import('../api/auth');
+      const { useAuthStore } = await import('./authStore');
+      (fetchCurrentUser as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new Error('Not authenticated'),
+      );
+
+      await useAuthStore.getState().checkAuth();
+
+      expect(useAuthStore.getState().isAuthChecked).toBe(true);
     });
   });
 });
