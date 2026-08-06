@@ -19,6 +19,7 @@
   "packageManager": "pnpm@10.34.4",
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
+    "@sentry/react": "^10.69.0",
     "@szczypkaweb/shared-ui": "file:../shared-ui",
     "@tanstack/react-query": "^5.101.4",
     "react": "^19.2.8",
@@ -40,6 +41,7 @@
     "argon2": "^0.45.1",
     "autoprefixer": "^10.5.4",
     "css-loader": "^7.1.4",
+    "dotenv": "^17.4.2",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",

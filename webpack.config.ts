@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import path from 'path';
 import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
@@ -83,6 +84,7 @@ const config: FullConfiguration = {
       // the auth mocks (see src/mocks) are reliably excluded from production
       // builds regardless of the `mode` setting below.
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV ?? 'development'),
+      'process.env.SENTRY_DSN': JSON.stringify(process.env.SENTRY_DSN ?? ''),
     }),
     // Module Federation HOST config: consumes the 'reactApp' remote (react-app),
     // whose remoteEntry.js is served at http://localhost:8081 in dev. The remote is
