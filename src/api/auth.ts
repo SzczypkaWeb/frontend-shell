@@ -5,11 +5,10 @@ import type { User } from '../types/user';
 // sends `credentials: 'include'` on every request, which is required here so
 // the browser attaches the httpOnly access/refresh cookies the backend sets.
 //
-// Note: GET /auth/me and POST /auth/logout are not implemented on the real
-// backend yet (only POST /auth/login is deployed). They are mocked at the
-// network level for local development via MSW (see src/mocks/handlers.ts) -
-// this module always talks to the real paths, so no code change is needed
-// once the backend ships them; only the mock handlers get removed.
+// GET /auth/me, POST /auth/login and POST /auth/logout are all fully
+// implemented and deployed on the real backend (real JWT auth, Google OAuth,
+// refresh flow), so every request below always goes to the real network -
+// no local mocking is needed or wired up anymore.
 
 export async function loginRequest(email: string, password: string): Promise<User> {
   const res = await apiFetch('/auth/login', {
