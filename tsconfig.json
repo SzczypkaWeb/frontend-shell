@@ -15,5 +15,5 @@
     "outDir": "dist",
     "resolveJsonModule": true
   },
-  "include": ["src", "webpack.config.ts", "vitest.config.ts", "playwright.config.ts", "e2e"]
+  "include": ["src", "webpack.config.ts", "vitest.config.ts"]
 }
