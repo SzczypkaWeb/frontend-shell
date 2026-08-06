@@ -1,6 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2020",
+    // Adds only the ES2022.Error lib (the `Error(message, { cause })` typing) on
+    // top of ES2020's default lib set, so e2e/global-setup.ts can attach `cause`
+    // when rethrowing - the DB connection failure it wraps. This doesn't change
+    // `target`, so emitted JS syntax is unaffected; Node itself has supported
+    // the `cause` option since well before this repo's minimum Node version.
+    "lib": ["ES2020", "ES2022.Error", "DOM", "DOM.Iterable", "ScriptHost"],
     "module": "CommonJS",
     "jsx": "react-jsx",
     "strict": true,
@@ -9,5 +15,5 @@
     "outDir": "dist",
     "resolveJsonModule": true
   },
-  "include": ["src", "webpack.config.ts", "vitest.config.ts"]
+  "include": ["src", "webpack.config.ts", "vitest.config.ts", "playwright.config.ts", "e2e"]
 }
