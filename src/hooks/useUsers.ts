@@ -28,7 +28,8 @@ async function fetchUsers(): Promise<User[]> {
     return [];
   }
   if (!res.ok) throw new Error('Failed to fetch users');
-  return res.json();
+  const json: { data: User[]; total: number } = await res.json();
+  return json.data;
 }
 
 export function useUsers() {
