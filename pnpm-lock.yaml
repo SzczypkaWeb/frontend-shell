@@ -15,8 +15,8 @@ importers:
         specifier: ^10.69.0
         version: 10.69.0(react@19.2.8)
       '@szczypkaweb/shared-ui':
-        specifier: file:../shared-ui
-        version: file:../shared-ui(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        specifier: ^0.1.0
+        version: 0.1.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@tanstack/react-query':
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)
@@ -1688,8 +1688,8 @@ packages:
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
-  '@szczypkaweb/shared-ui@file:../shared-ui':
-    resolution: {directory: ../shared-ui, type: directory}
+  '@szczypkaweb/shared-ui@0.1.0':
+    resolution: {integrity: sha512-VZvOMUKXzz8kTEgnTON79ECEbiGokdVks5/TBBigLTihGeymc0O7kmmbuBrnHSkaz8yytW8ZxrOeFdYjkub9zA==, tarball: https://npm.pkg.github.com/download/@szczypkaweb/shared-ui/0.1.0/b14412e67cf06d8339f3071506fc10d45d7fd3ae}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'
@@ -5844,7 +5844,7 @@ snapshots:
 
   '@standard-schema/utils@0.3.0': {}
 
-  '@szczypkaweb/shared-ui@file:../shared-ui(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@szczypkaweb/shared-ui@0.1.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       clsx: 2.1.1
       radix-ui: 1.6.7(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
