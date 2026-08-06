@@ -30,7 +30,14 @@ describe('useUsers', () => {
     (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => [{ id: '1', email: 'a@example.com', createdAt: '2026-01-01' }],
+      // fetchUsers unwraps a paginated { data, total } envelope (see
+      // useUsers.ts), not a bare array - this mock was stale from before that
+      // change, so `json.data` was always undefined and the query never
+      // resolved to a length-1 array.
+      json: async () => ({
+        data: [{ id: '1', email: 'a@example.com', createdAt: '2026-01-01' }],
+        total: 1,
+      }),
     });
 
     const { result } = renderHook(() => useUsers(), { wrapper: createWrapper() });

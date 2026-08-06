@@ -44,7 +44,12 @@ function renderWithProviders() {
 describe('AppShell', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [] }));
+    // fetchUsers unwraps a paginated { data, total } envelope (see
+    // useUsers.ts), not a bare array.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: [], total: 0 }) }),
+    );
     vi.stubGlobal('location', { ...window.location, pathname: '/', assign: vi.fn() });
   });
 

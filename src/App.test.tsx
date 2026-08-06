@@ -53,7 +53,12 @@ describe('App - users list', () => {
 
     resolveFetch({
       ok: true,
-      json: async () => [{ id: '1', email: 'a@example.com', createdAt: '2026-01-01' }],
+      // fetchUsers unwraps a paginated { data, total } envelope (see
+      // useUsers.ts) rather than a bare array.
+      json: async () => ({
+        data: [{ id: '1', email: 'a@example.com', createdAt: '2026-01-01' }],
+        total: 1,
+      }),
     });
 
     await waitFor(() => expect(screen.queryByText('Ładowanie...')).not.toBeInTheDocument());
@@ -94,10 +99,14 @@ describe('App - version display', () => {
           json: async () => ({ version: '1.2.3' }),
         });
       }
-      // Default behavior for other endpoints (users)
+      // Default behavior for other endpoints (users) - fetchUsers unwraps a
+      // paginated { data, total } envelope (see useUsers.ts), not a bare array.
       return Promise.resolve({
         ok: true,
-        json: async () => [{ id: '1', email: 'user@example.com', createdAt: '2026-01-01' }],
+        json: async () => ({
+          data: [{ id: '1', email: 'user@example.com', createdAt: '2026-01-01' }],
+          total: 1,
+        }),
       });
     });
 
@@ -119,9 +128,14 @@ describe('App - version display', () => {
           json: async () => ({}),
         });
       }
+      // fetchUsers unwraps a paginated { data, total } envelope (see
+      // useUsers.ts), not a bare array.
       return Promise.resolve({
         ok: true,
-        json: async () => [{ id: '1', email: 'user@example.com', createdAt: '2026-01-01' }],
+        json: async () => ({
+          data: [{ id: '1', email: 'user@example.com', createdAt: '2026-01-01' }],
+          total: 1,
+        }),
       });
     });
 
@@ -142,7 +156,9 @@ describe('App - remote widget (Module Federation host)', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => [],
+        // fetchUsers unwraps a paginated { data, total } envelope (see
+        // useUsers.ts), not a bare array.
+        json: async () => ({ data: [], total: 0 }),
       }),
     );
   });
