@@ -6,6 +6,18 @@ import { AppShell } from './AppShell';
 // comment), and this is the module that actually renders the app, so it's
 // the natural place for the app's global stylesheet too.
 import './styles.css';
+import * as Sentry from '@sentry/react';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  debug: true,
+  dataCollection: {
+    // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
+    // https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/#dataCollection
+    // userInfo: false,
+    // httpBodies: []
+  },
+});
 
 const queryClient = new QueryClient();
 
