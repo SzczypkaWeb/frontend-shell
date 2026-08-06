@@ -13,7 +13,11 @@ interface FullConfiguration extends Configuration {
 const { ModuleFederationPlugin } = webpack.container;
 
 const config: FullConfiguration = {
-  mode: 'development',
+  // Było zahardkodowane na 'development' — `pnpm build` nigdy nie produkował
+  // realnego builda produkcyjnego (bez minifikacji, z dev-owymi ostrzeżeniami)
+  // niezależnie od tego jak był odpalany. Teraz zależne od NODE_ENV, tak samo
+  // jak DefinePlugin niżej już to robił dla process.env.NODE_ENV w bundlu.
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   entry: path.resolve(__dirname, 'src/index.tsx'),
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -87,9 +91,12 @@ const config: FullConfiguration = {
       'process.env.SENTRY_DSN': JSON.stringify(process.env.SENTRY_DSN ?? ''),
     }),
     // Module Federation HOST config: consumes the 'reactApp' remote (react-app),
-    // whose remoteEntry.js is served at http://localhost:8081 in dev. The remote is
-    // resolved lazily at runtime (React.lazy + Suspense, see src/components/RemoteWidget.tsx)
-    // rather than eagerly on host startup.
+    // whose remoteEntry.js is served at http://localhost:8081 in dev, or at
+    // REACT_APP_REMOTE_URL (set at build time, e.g. its Azure Static Web Apps
+    // URL) in production — was hardcoded to localhost, which would have tried
+    // to load the remote from localhost in every deployed environment too.
+    // The remote is resolved lazily at runtime (React.lazy + Suspense, see
+    // src/components/RemoteWidget.tsx) rather than eagerly on host startup.
     //
     // The shell is also a container itself here (filename + exposes): it exposes
     // authStore so that react-app (or any other remote) can later add `shell` to its
@@ -99,7 +106,7 @@ const config: FullConfiguration = {
       name: 'shell',
       filename: 'remoteEntry.js',
       remotes: {
-        reactApp: 'reactApp@http://localhost:8081/remoteEntry.js',
+        reactApp: `reactApp@${process.env.REACT_APP_REMOTE_URL ?? 'http://localhost:8081'}/remoteEntry.js`,
       },
       exposes: {
         './authStore': './src/store/authStore.ts',

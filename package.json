@@ -7,7 +7,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "webpack serve --config webpack.config.ts",
-    "build": "webpack --config webpack.config.ts",
+    "build": "NODE_ENV=production webpack --config webpack.config.ts",
     "lint": "eslint src webpack.config.ts",
     "format": "prettier --write .",
     "prepare": "lefthook install || true"
