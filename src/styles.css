@@ -1,3 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/*
+ * Shared design tokens (CSS variables + @theme mapping) published by
+ * @szczypkaweb/shared-ui, so this app doesn't redefine them itself — see
+ * that package's README/CLAUDE.md for why.
+ */
+@import '@szczypkaweb/shared-ui/globals.css';
+
+/*
+ * @szczypkaweb/shared-ui ships components whose Tailwind utility classes
+ * live in the compiled dist bundle rather than in source files under this
+ * app. Tailwind v4's automatic content detection does not scan
+ * node_modules, so we explicitly point it at the package's dist output to
+ * make sure those utility classes are generated here too.
+ */
+@source "../node_modules/@szczypkaweb/shared-ui/dist";

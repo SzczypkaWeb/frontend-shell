@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest';
 import postcssConfig from './postcss.config.cjs';
 
 describe('postcss.config', () => {
-  it('runs the tailwindcss and autoprefixer plugins', () => {
+  it('runs the Tailwind v4 postcss plugin', () => {
     expect(Object.keys(postcssConfig.plugins)).toEqual(
-      expect.arrayContaining(['tailwindcss', 'autoprefixer']),
+      expect.arrayContaining(['@tailwindcss/postcss']),
     );
   });
 });
