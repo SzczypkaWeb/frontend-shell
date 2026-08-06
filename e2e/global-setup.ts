@@ -37,9 +37,9 @@ export default async function globalSetup() {
     // this fixture (from a previous run, or one global-teardown.ts failed to
     // clean up) is idempotent rather than erroring on the unique email.
     await client.query(
-      `INSERT INTO "User" (id, email, "passwordHash", "authProvider", status)
-       VALUES ($1, $2, $3, 'email', 'active')
-       ON CONFLICT (email) DO UPDATE SET "passwordHash" = EXCLUDED."passwordHash"`,
+      `INSERT INTO "User" (id, email, "passwordHash", "authProvider", status, "createdAt", "updatedAt")
+   VALUES ($1, $2, $3, 'email', 'active', NOW(), NOW())
+   ON CONFLICT (email) DO UPDATE SET "passwordHash" = EXCLUDED."passwordHash", "updatedAt" = NOW()`,
       [randomUUID(), TEST_USER_EMAIL, passwordHash],
     );
   } finally {

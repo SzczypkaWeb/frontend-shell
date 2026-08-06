@@ -47,7 +47,7 @@ test.describe('Auth flow', () => {
 
     // 3. Authenticated view: Navbar shows the user's email + Logout, and the
     // shell's own (protected) content renders.
-    await expect(page.getByText(TEST_USER_EMAIL)).toBeVisible();
+    await expect(page.getByRole('navigation').getByText(TEST_USER_EMAIL)).toBeVisible();
     const logoutButton = page.getByRole('button', { name: /logout/i });
     await expect(logoutButton).toBeVisible();
     await expect(page.getByText(/shell działa/i)).toBeVisible();
