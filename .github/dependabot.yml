@@ -1,0 +1,30 @@
+version: 2
+
+# GitHub Packages is a private registry - Dependabot needs its own token to
+# read it (separate from the repo's default GITHUB_TOKEN, which Dependabot
+# doesn't get). Add a PAT with `read:packages` as a repo secret named
+# DEPENDABOT_PACKAGES_TOKEN (Settings -> Secrets and variables -> Dependabot).
+registries:
+  github-packages-szczypkaweb:
+    type: npm-registry
+    url: https://npm.pkg.github.com
+    token: ${{secrets.DEPENDABOT_PACKAGES_TOKEN}}
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    registries:
+      - github-packages-szczypkaweb
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore"
+    # Scoped to shared-ui on purpose - this is here to stop the manual
+    # package.json range bump + pnpm-lock.yaml refresh every time shared-ui
+    # publishes, not to take over general dependency management for this
+    # repo. Remove this `allow` block if you want Dependabot to also manage
+    # everything else (React, Sentry SDK, etc.) - deliberately not doing that
+    # here to avoid opening unrelated noisy PRs.
+    allow:
+      - dependency-name: "@szczypkaweb/shared-ui"

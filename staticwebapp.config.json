@@ -1,0 +1,21 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/remoteEntry.js", "*.{js,css,ico,png,jpg,jpeg,svg,webp,woff,woff2,map}"]
+  },
+  "routes": [
+    {
+      "route": "/remoteEntry.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Cache-Control": "no-cache"
+      }
+    },
+    {
+      "route": "/*.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "*"
+      }
+    }
+  ]
+}
