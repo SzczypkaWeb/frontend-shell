@@ -25,7 +25,15 @@ const config: FullConfiguration = {
     // Required by Module Federation so the shell (and any consumer of it) resolves
     // chunk/asset URLs correctly regardless of where it's hosted.
     chunkFilename: '[name].[contenthash].js',
-    publicPath: 'auto',
+    // Was 'auto', which derives the base path from the CURRENT page URL at
+    // runtime - broke on any "deep" path served via the SPA fallback in
+    // staticwebapp.config.json (e.g. landing on /auth/google, which doesn't
+    // exist as a real route here - it belongs to the backend - or any
+    // client-side route like /login): the browser resolved bundle.js/
+    // remoteEntry.js relative to that path (e.g. /auth/bundle.js) instead of
+    // the actual root, 404ing both. Root-relative is always correct here
+    // since this app is always served from the domain root.
+    publicPath: '/',
     clean: true,
   },
   resolve: {
