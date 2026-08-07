@@ -47,13 +47,21 @@ jobs:
       # Federation remote), inaczej webpack.config.ts wpisze do builda
       # produkcyjnego fallback `http://localhost:8081`, który w
       # produkcyjnym buildzie oczywiście nigdzie nie prowadzi.
-      # Ustawiony jako repo variable (nie sekret - to publiczny URL), patrz
-      # Settings -> Secrets and variables -> Actions -> Variables ->
-      # REACT_APP_REMOTE_URL, wartość z Job Summary przebiegu react-app.
+      #
+      # API_URL musi wskazywać na wdrożony backend (GCP Cloud Run) - inaczej
+      # `src/api/config.ts` wpisze do builda fallback `http://localhost:3000`,
+      # i przycisk "Zaloguj się przez Google" w produkcji będzie linkował do
+      # localhost. Ta konkretna zmienna faktycznie brakowała (znaleziono przy
+      # debugowaniu, gdzie login redirectował na localhost:8080 - link szedł
+      # do lokalnego backendu dewelopera, nie do produkcyjnego).
+      #
+      # Obie ustawione jako repo variables (nie sekrety - to publiczne URL-e),
+      # patrz Settings -> Secrets and variables -> Actions -> Variables.
       - name: Build
         run: pnpm build
         env:
           REACT_APP_REMOTE_URL: ${{ vars.REACT_APP_REMOTE_URL }}
+          API_URL: ${{ vars.API_URL }}
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1

@@ -14,7 +14,8 @@
     {
       "route": "/*.js",
       "headers": {
-        "Access-Control-Allow-Origin": "*"
+        "Access-Control-Allow-Origin": "*",
+        "Cache-Control": "no-cache"
       }
     }
   ]

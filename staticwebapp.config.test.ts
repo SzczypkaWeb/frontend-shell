@@ -38,4 +38,9 @@ describe('staticwebapp.config.json', () => {
     const route = config.routes.find((r: { route: string }) => r.route === '/*.js');
     expect(route?.headers?.['Access-Control-Allow-Origin']).toBe('*');
   });
+
+  it("doesn't let the main entry bundle be cached either, since bundle.js (unlike MF chunks) has a stable filename with no content hash - a stale cached copy silently keeps serving build-time values (API_URL, etc.) from whenever it was first cached, even after a new deploy", () => {
+    const route = config.routes.find((r: { route: string }) => r.route === '/*.js');
+    expect(route?.headers?.['Cache-Control']).toMatch(/no-cache/);
+  });
 });
