@@ -43,6 +43,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Lint + Vitest run as part of this same job (not a separate PR-only
+      # job) so a failure here blocks the job as a whole - including the
+      # Azure preview deploy below - and shows up as ONE required status
+      # check ("Build and Deploy Job") in branch protection, instead of
+      # needing two green checks kept in sync.
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
       # REACT_APP_REMOTE_URL has to point at the deployed react-app (Module
       # Federation remote), otherwise webpack.config.ts bakes the production
       # build's fallback `http://localhost:8081` into it, which obviously
@@ -96,6 +107,9 @@ jobs:
   #              the deploy above), API_URL_STAGING (already set for the build)
   #   Secrets:   E2E_DATABASE_URL_STAGING (optional - without it the 'app'
   #              project in e2e-tests is safely skipped)
+  #              E2E_REPO_PAT (required - see the matching comment in
+  #              react-app's workflow for why this is needed separately from
+  #              the "Actions -> Access" org permission)
   e2e:
     needs: build_and_deploy_job
     if: github.ref == 'refs/heads/staging'
@@ -105,6 +119,7 @@ jobs:
       api_url: ${{ vars.API_URL_STAGING }}
     secrets:
       E2E_DATABASE_URL: ${{ secrets.E2E_DATABASE_URL_STAGING }}
+      E2E_REPO_CHECKOUT_TOKEN: ${{ secrets.E2E_REPO_PAT }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
