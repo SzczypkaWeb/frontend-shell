@@ -43,6 +43,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Lint + Vitest run as part of this same job (not a separate PR-only
+      # job) so a failure here blocks the job as a whole - including the
+      # Azure preview deploy below - and shows up as ONE required status
+      # check ("Build and Deploy Job") in branch protection, instead of
+      # needing two green checks kept in sync.
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
       # REACT_APP_REMOTE_URL has to point at the deployed react-app (Module
       # Federation remote), otherwise webpack.config.ts bakes the production
       # build's fallback `http://localhost:8081` into it, which obviously
