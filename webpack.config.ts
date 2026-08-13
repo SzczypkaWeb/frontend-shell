@@ -13,10 +13,10 @@ interface FullConfiguration extends Configuration {
 const { ModuleFederationPlugin } = webpack.container;
 
 const config: FullConfiguration = {
-  // Było zahardkodowane na 'development' — `pnpm build` nigdy nie produkował
-  // realnego builda produkcyjnego (bez minifikacji, z dev-owymi ostrzeżeniami)
-  // niezależnie od tego jak był odpalany. Teraz zależne od NODE_ENV, tak samo
-  // jak DefinePlugin niżej już to robił dla process.env.NODE_ENV w bundlu.
+  // Used to be hardcoded to 'development' — `pnpm build` never produced a
+  // real production build (no minification, dev-mode warnings) regardless of
+  // how it was run. Now driven by NODE_ENV, the same way DefinePlugin below
+  // already did for process.env.NODE_ENV in the bundle.
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   entry: path.resolve(__dirname, 'src/index.tsx'),
   output: {

@@ -2,7 +2,7 @@ name: Azure Static Web Apps CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches: [main]
@@ -12,17 +12,17 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
-    # Same reasoning as react-app's workflow: PR previews vs the real prod
-    # deploy get different GitHub Environments, so required-reviewer rules
-    # (if you set them up later) only gate production.
+    # Same reasoning as react-app's workflow: three cases (prod / staging /
+    # PR preview), only prod counts as "production" for GitHub Environment
+    # protection rules (required reviewers etc.), if those get set up later.
     environment:
-      name: ${{ github.event_name == 'push' && 'production' || 'preview' }}
-    # Build ręcznie (nie przez Oryx w akcji SWA) - identyczny powód i
-    # identyczne obejście co w react-app: pnpm CELOWO ignoruje `${GITHUB_TOKEN}`
-    # w .npmrc zacommitowanym do repo (project .npmrc jest "untrusted" dla
-    # credentiali - patrz warning "Ignored project-level auth setting..." /
-    # https://pnpm.io/npmrc), więc token trzeba wstrzyknąć jawnie przez
-    # `pnpm config set` w osobnym stepie PRZED `pnpm install`.
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || (github.ref == 'refs/heads/staging' && 'staging' || 'preview') }}
+    # Manual build (not via Oryx in the SWA action) - same reason and same
+    # workaround as react-app: pnpm DELIBERATELY ignores `${GITHUB_TOKEN}` in
+    # a .npmrc committed to the repo (a project .npmrc is "untrusted" for
+    # credentials - see the "Ignored project-level auth setting..." warning /
+    # https://pnpm.io/npmrc), so the token has to be injected explicitly via
+    # `pnpm config set` in a separate step BEFORE `pnpm install`.
     env:
       GITHUB_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN }}
     steps:
@@ -43,27 +43,38 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # REACT_APP_REMOTE_URL musi wskazywać na wdrożone react-app (Module
-      # Federation remote), inaczej webpack.config.ts wpisze do builda
-      # produkcyjnego fallback `http://localhost:8081`, który w
-      # produkcyjnym buildzie oczywiście nigdzie nie prowadzi.
+      # REACT_APP_REMOTE_URL has to point at the deployed react-app (Module
+      # Federation remote), otherwise webpack.config.ts bakes the production
+      # build's fallback `http://localhost:8081` into it, which obviously
+      # goes nowhere in a production build.
       #
-      # API_URL musi wskazywać na wdrożony backend (GCP Cloud Run) - inaczej
-      # `src/api/config.ts` wpisze do builda fallback `http://localhost:3000`,
-      # i przycisk "Zaloguj się przez Google" w produkcji będzie linkował do
-      # localhost. Ta konkretna zmienna faktycznie brakowała (znaleziono przy
-      # debugowaniu, gdzie login redirectował na localhost:8080 - link szedł
-      # do lokalnego backendu dewelopera, nie do produkcyjnego).
+      # API_URL has to point at the deployed backend (GCP Cloud Run) -
+      # otherwise `src/api/config.ts` bakes the fallback `http://localhost:3000`
+      # into the build, and the "Zaloguj się przez Google" ("Log in with
+      # Google") button in production links to localhost. This specific
+      # variable was actually missing (found while debugging login
+      # redirecting to localhost:8080 - the link went to the developer's
+      # local backend, not the production one).
       #
-      # Obie ustawione jako repo variables (nie sekrety - to publiczne URL-e),
-      # patrz Settings -> Secrets and variables -> Actions -> Variables.
+      # A push to `staging` takes a separate set of values (`*_STAGING`), so
+      # staging frontend-shell talks to staging react-app and backend, not
+      # production. PR previews (pull_request event) deliberately fall back
+      # to production values - there's no separate backend/react-app for
+      # previews alone, this is unchanged from how it already worked.
+      #
+      # All as repo variables (not secrets - these are public URLs), see
+      # Settings -> Secrets and variables -> Actions -> Variables.
       - name: Build
         run: pnpm build
         env:
-          REACT_APP_REMOTE_URL: ${{ vars.REACT_APP_REMOTE_URL }}
-          API_URL: ${{ vars.API_URL }}
+          REACT_APP_REMOTE_URL: ${{ github.ref == 'refs/heads/staging' && vars.REACT_APP_REMOTE_URL_STAGING || vars.REACT_APP_REMOTE_URL }}
+          API_URL: ${{ github.ref == 'refs/heads/staging' && vars.API_URL_STAGING || vars.API_URL }}
 
+      # See the comment on the same parameter in react-app - a stable,
+      # persistent URL at `<default-host>-staging.<region>.azurestaticapps.net`,
+      # on the same SWA resource, no extra cost.
       - name: Deploy to Azure Static Web Apps
+        id: deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
@@ -73,6 +84,27 @@ jobs:
           api_location: ""
           output_location: ""
           skip_app_build: true
+          deployment_environment: ${{ github.ref == 'refs/heads/staging' && 'staging' || '' }}
+
+  # See the matching comment in
+  # react-app/.github/workflows/azure-static-web-apps.yml - each of the
+  # three services (backend, react-app, frontend-shell) re-validates the same
+  # shared staging stack after its own deploy.
+  #
+  # Requires (Settings -> Secrets and variables -> Actions, this repo):
+  #   Variables: FRONTEND_SHELL_STAGING_URL (own URL - see the Job Summary of
+  #              the deploy above), API_URL_STAGING (already set for the build)
+  #   Secrets:   E2E_DATABASE_URL_STAGING (optional - without it the 'app'
+  #              project in e2e-tests is safely skipped)
+  e2e:
+    needs: build_and_deploy_job
+    if: github.ref == 'refs/heads/staging'
+    uses: szczypkaweb/marketplace-e2e/.github/workflows/e2e.yml@main
+    with:
+      app_url: ${{ vars.FRONTEND_SHELL_STAGING_URL }}
+      api_url: ${{ vars.API_URL_STAGING }}
+    secrets:
+      E2E_DATABASE_URL: ${{ secrets.E2E_DATABASE_URL_STAGING }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -84,3 +116,8 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           action: "close"
+          # app_location isn't actually used by the action's entrypoint when
+          # action=close, but the action's own action.yml declares it
+          # `required: true` unconditionally - dummy value here just quiets
+          # editor/linter warnings, has no runtime effect.
+          app_location: "/"
