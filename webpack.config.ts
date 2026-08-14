@@ -105,6 +105,14 @@ const config: FullConfiguration = {
       'process.env.SENTRY_ENVIRONMENT': JSON.stringify(
         process.env.SENTRY_ENVIRONMENT ?? 'development',
       ),
+      // Without a `release`, Sentry's browser SDK silently discards session
+      // tracking data ("Discarded session because of missing or non-string
+      // release" in the console) - error events still send fine either way,
+      // but Release Health (crash-free session %, regression detection
+      // between deploys) needs this. The git commit SHA is a natural,
+      // always-unique identifier for a static bundle build - set by the
+      // Azure workflow; 'local' covers `pnpm dev`/`pnpm build` outside CI.
+      'process.env.SENTRY_RELEASE': JSON.stringify(process.env.SENTRY_RELEASE ?? 'local'),
     }),
     // Module Federation HOST config: consumes the 'reactApp' remote (react-app),
     // whose remoteEntry.js is served at http://localhost:8081 in dev, or at
