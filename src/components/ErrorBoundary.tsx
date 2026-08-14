@@ -1,4 +1,5 @@
 import { Component, ReactNode } from 'react';
+import * as Sentry from '@sentry/react';
 
 interface Props {
   children: ReactNode;
@@ -31,6 +32,14 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error) {
     // Log error for debugging purposes
     console.error('Error caught by ErrorBoundary:', error);
+    // React error boundaries catch render-phase errors and stop them from
+    // ever reaching window.onerror/unhandledrejection - which means they
+    // never reached Sentry either, despite Sentry.init() already running in
+    // this same app (bootstrap.tsx). This was a real blind spot: this
+    // boundary wraps the Module Federation remote (RemoteWidget/react-app),
+    // so a render bug in that widget specifically was invisible in
+    // production monitoring until now. See BLOG_NOTES.md.
+    Sentry.captureException(error);
   }
 
   render() {

@@ -75,11 +75,22 @@ jobs:
       #
       # All as repo variables (not secrets - these are public URLs), see
       # Settings -> Secrets and variables -> Actions -> Variables.
+      # SENTRY_DSN was never actually wired into this build until now - the
+      # webpack.config.ts DefinePlugin has always fallen back to an empty
+      # string, meaning Sentry.init() in bootstrap.tsx has been running with
+      # dsn: '' in every production build to date (silently a no-op - Sentry
+      # doesn't error on an empty DSN, it just doesn't send anything). Found
+      # while auditing testing/Sentry coverage across all frontend repos -
+      # see BLOG_NOTES.md. A DSN isn't a secret (Sentry's own docs treat it
+      # as safe to expose in client-side code, same as a project ID), so
+      # it's a plain repo Variable, same tier as REACT_APP_REMOTE_URL/API_URL
+      # above - not Settings -> Secrets.
       - name: Build
         run: pnpm build
         env:
           REACT_APP_REMOTE_URL: ${{ github.ref == 'refs/heads/staging' && vars.REACT_APP_REMOTE_URL_STAGING || vars.REACT_APP_REMOTE_URL }}
           API_URL: ${{ github.ref == 'refs/heads/staging' && vars.API_URL_STAGING || vars.API_URL }}
+          SENTRY_DSN: ${{ vars.SENTRY_DSN }}
 
       # See the comment on the same parameter in react-app - a stable,
       # persistent URL at `<default-host>-staging.<region>.azurestaticapps.net`,
