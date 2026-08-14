@@ -91,6 +91,7 @@ jobs:
           REACT_APP_REMOTE_URL: ${{ github.ref == 'refs/heads/staging' && vars.REACT_APP_REMOTE_URL_STAGING || vars.REACT_APP_REMOTE_URL }}
           API_URL: ${{ github.ref == 'refs/heads/staging' && vars.API_URL_STAGING || vars.API_URL }}
           SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+          SENTRY_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || (github.ref == 'refs/heads/staging' && 'staging' || 'preview') }}
 
       # See the comment on the same parameter in react-app - a stable,
       # persistent URL at `<default-host>-staging.<region>.azurestaticapps.net`,
