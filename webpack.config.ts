@@ -97,6 +97,14 @@ const config: FullConfiguration = {
       // builds regardless of the `mode` setting below.
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV ?? 'development'),
       'process.env.SENTRY_DSN': JSON.stringify(process.env.SENTRY_DSN ?? ''),
+      // Tags Sentry events with which deploy they came from (production /
+      // staging / preview) within the SAME project - avoids needing a
+      // separate DSN per environment. Set per-branch by the Azure workflow;
+      // 'development' is only ever seen locally (`pnpm dev`/`pnpm build`
+      // without the env var set).
+      'process.env.SENTRY_ENVIRONMENT': JSON.stringify(
+        process.env.SENTRY_ENVIRONMENT ?? 'development',
+      ),
     }),
     // Module Federation HOST config: consumes the 'reactApp' remote (react-app),
     // whose remoteEntry.js is served at http://localhost:8081 in dev, or at
