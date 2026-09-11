@@ -25,6 +25,12 @@ jobs:
     # `pnpm config set` in a separate step BEFORE `pnpm install`.
     env:
       GITHUB_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN }}
+      # `secrets` isn't a recognized context inside a step's `if:` (GitHub
+      # Actions rejects it at workflow-parse time: "Unrecognized named-value:
+      # 'secrets'") - only `env`/`vars`/`github` etc. are. Resolve it into an
+      # env var here instead, where `secrets` access is fine, then check
+      # *that* in the deploy step's `if:` below.
+      HAS_AZURE_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -110,7 +116,7 @@ jobs:
       # for.
       - name: Deploy to Azure Static Web Apps
         id: deploy
-        if: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN != '' }}
+        if: env.HAS_AZURE_TOKEN == 'true'
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
@@ -150,9 +156,13 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
     name: Close Pull Request Job
+    env:
+      # See the matching comment on build_and_deploy_job's env block above -
+      # `secrets` isn't valid inside a step `if:`.
+      HAS_AZURE_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN != '' }}
     steps:
       - name: Close Pull Request
-        if: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN != '' }}
+        if: env.HAS_AZURE_TOKEN == 'true'
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
