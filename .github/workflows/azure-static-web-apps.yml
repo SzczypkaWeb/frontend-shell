@@ -97,13 +97,20 @@ jobs:
       # See the comment on the same parameter in react-app - a stable,
       # persistent URL at `<default-host>-staging.<region>.azurestaticapps.net`,
       # on the same SWA resource, no extra cost.
-      # skip_deploy_on_missing_secrets: same reasoning as react-app's copy of
-      # this step - Dependabot-triggered runs only get Dependabot secrets, so
-      # AZURE_STATIC_WEB_APPS_API_TOKEN comes back empty and this step would
-      # otherwise hard-fail the job over a deploy a dependency-bump PR never
-      # actually needs.
+      #
+      # `if:` guard, not `skip_deploy_on_missing_secrets` (removed - that
+      # input is silently ignored: `@v1`'s actual "valid inputs" list doesn't
+      # include it, and it's a long-standing, still-open bug in the action
+      # itself - github.com/Azure/static-web-apps/issues/679, open since
+      # 2022, hard-fails with "deployment_token was not provided" regardless
+      # of the setting). Skip the step at the GitHub Actions level instead,
+      # before the action ever runs, so a Dependabot-triggered run (which
+      # only gets Dependabot secrets - AZURE_STATIC_WEB_APPS_API_TOKEN comes
+      # back empty) doesn't hard-fail a job it never needed a real deploy
+      # for.
       - name: Deploy to Azure Static Web Apps
         id: deploy
+        if: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN != '' }}
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
@@ -113,7 +120,6 @@ jobs:
           api_location: ""
           output_location: ""
           skip_app_build: true
-          skip_deploy_on_missing_secrets: true
           deployment_environment: ${{ github.ref == 'refs/heads/staging' && 'staging' || '' }}
 
   # See the matching comment in
@@ -146,11 +152,11 @@ jobs:
     name: Close Pull Request Job
     steps:
       - name: Close Pull Request
+        if: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN != '' }}
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           action: "close"
-          skip_deploy_on_missing_secrets: true
           # app_location isn't actually used by the action's entrypoint when
           # action=close, but the action's own action.yml declares it
           # `required: true` unconditionally - dummy value here just quiets
