@@ -11,20 +11,29 @@ registries:
     token: ${{secrets.DEPENDABOT_PACKAGES_TOKEN}}
 
 updates:
+  # target-branch: staging, not main - dependency bumps go through the same
+  # staging validation as any other change before promotion (see
+  # orchestrator/repos.py's target_branch, RUNBOOK.md section 4).
   - package-ecosystem: "npm"
     directory: "/"
+    target-branch: "staging"
     registries:
       - github-packages-szczypkaweb
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore"
+    # Was scoped to just @szczypkaweb/shared-ui via an `allow` block -
+    # broadened to general dependency management after a hand-picked major
+    # version bump (@nestjs/swagger, in backend) shipped a peer-dependency
+    # mismatch that Dependabot would have caught/flagged. `registries` above
+    # is still needed specifically for resolving shared-ui from GH Packages.
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore"
-    # Scoped to shared-ui on purpose - this is here to stop the manual
-    # package.json range bump + pnpm-lock.yaml refresh every time shared-ui
-    # publishes, not to take over general dependency management for this
-    # repo. Remove this `allow` block if you want Dependabot to also manage
-    # everything else (React, Sentry SDK, etc.) - deliberately not doing that
-    # here to avoid opening unrelated noisy PRs.
-    allow:
-      - dependency-name: "@szczypkaweb/shared-ui"
