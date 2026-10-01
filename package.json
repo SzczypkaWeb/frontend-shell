@@ -9,6 +9,7 @@
     "dev": "webpack serve --config webpack.config.ts",
     "build": "NODE_ENV=production webpack --config webpack.config.ts && cp staticwebapp.config.json dist/staticwebapp.config.json",
     "lint": "eslint src webpack.config.ts --max-warnings=0",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "prepare": "lefthook install || true"
   },
